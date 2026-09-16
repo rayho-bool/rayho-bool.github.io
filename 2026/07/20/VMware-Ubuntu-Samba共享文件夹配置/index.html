@@ -1,0 +1,296 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件 | My Blog</title><meta name="author" content="Rayho"><meta name="copyright" content="Rayho"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言日常使用 VMware 运行 Ubuntu Server 时，经常需要在 Windows 宿主机和虚拟机之间传输代码、配置文件、安装包。VMware 自带的 &#x2F;mnt&#x2F;hgfs 共享虽然简单，但存在大文件读写卡顿、Linux 文件权限丢失、稳定性差等问题。Samba 基于局域网文件共享协议，速度稳定、权限可控，适合长期开发和运维场景使用。本文完整记录从零配置 Samba 的全部步骤与排错方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件">
+<meta property="og:url" content="https://rayho-bool.github.io/2026/07/20/VMware-Ubuntu-Samba%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9%E9%85%8D%E7%BD%AE/index.html">
+<meta property="og:site_name" content="My Blog">
+<meta property="og:description" content="前言日常使用 VMware 运行 Ubuntu Server 时，经常需要在 Windows 宿主机和虚拟机之间传输代码、配置文件、安装包。VMware 自带的 &#x2F;mnt&#x2F;hgfs 共享虽然简单，但存在大文件读写卡顿、Linux 文件权限丢失、稳定性差等问题。Samba 基于局域网文件共享协议，速度稳定、权限可控，适合长期开发和运维场景使用。本文完整记录从零配置 Samba 的全部步骤与排错方案。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://avatars.githubusercontent.com/rayho-bool">
+<meta property="article:published_time" content="2026-07-20T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-09-16T01:20:03.917Z">
+<meta property="article:author" content="Rayho">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="Samba">
+<meta property="article:tag" content="Ubuntu">
+<meta property="article:tag" content="VMware">
+<meta property="article:tag" content="Windows">
+<meta property="article:tag" content="开发工具">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://avatars.githubusercontent.com/rayho-bool"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件",
+  "url": "https://rayho-bool.github.io/2026/07/20/VMware-Ubuntu-Samba%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9%E9%85%8D%E7%BD%AE/",
+  "image": "https://avatars.githubusercontent.com/rayho-bool",
+  "datePublished": "2026-07-20T04:00:00.000Z",
+  "dateModified": "2026-09-16T01:20:03.917Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Rayho",
+      "url": "https://rayho-bool.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/"><link rel="canonical" href="https://rayho-bool.github.io/2026/07/20/VMware-Ubuntu-Samba%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9%E9%85%8D%E7%BD%AE/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://avatars.githubusercontent.com/rayho-bool" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">My Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-07-20T04:00:00.000Z" title="发表于 2026-07-20 12:00:00">2026-07-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-09-16T01:20:03.917Z" title="更新于 2026-09-16 09:20:03">2026-09-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%BF%90%E7%BB%B4/">运维</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>日常使用 VMware 运行 Ubuntu Server 时，经常需要在 Windows 宿主机和虚拟机之间传输代码、配置文件、安装包。VMware 自带的 <code>/mnt/hgfs</code> 共享虽然简单，但存在大文件读写卡顿、Linux 文件权限丢失、稳定性差等问题。Samba 基于局域网文件共享协议，速度稳定、权限可控，适合长期开发和运维场景使用。本文完整记录从零配置 Samba 的全部步骤与排错方案。</p>
+<h2 id="两种文件共享方案对比"><a href="#两种文件共享方案对比" class="headerlink" title="两种文件共享方案对比"></a>两种文件共享方案对比</h2><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VMware hgfs 共享</td>
+<td>配置极简，一键开启</td>
+<td>大文件 IO 速度慢、Linux 权限失效、偶尔挂载丢失</td>
+<td>临时传输少量小文件</td>
+</tr>
+<tr>
+<td>Samba 局域网共享</td>
+<td>传输速度稳定、读写权限自定义、Windows 原生网络访问</td>
+<td>需要手动配置服务与账号</td>
+<td>长期开发、大量文件互传、项目代码同步</td>
+</tr>
+</tbody></table>
+<p>本文重点讲解推荐方案：<strong>Samba 局域网文件共享</strong>。</p>
+<h2 id="一、安装-Samba-服务"><a href="#一、安装-Samba-服务" class="headerlink" title="一、安装 Samba 服务"></a>一、安装 Samba 服务</h2><h3 id="1-更新软件源并安装"><a href="#1-更新软件源并安装" class="headerlink" title="1. 更新软件源并安装"></a>1. 更新软件源并安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install samba samba-common-bin -y</span><br></pre></td></tr></table></figure>
+
+<h2 id="二、创建共享目录并配置权限"><a href="#二、创建共享目录并配置权限" class="headerlink" title="二、创建共享目录并配置权限"></a>二、创建共享目录并配置权限</h2><h3 id="1-新建共享文件夹"><a href="#1-新建共享文件夹" class="headerlink" title="1. 新建共享文件夹"></a>1. 新建共享文件夹</h3><p>以用户 <code>rayho</code> 为例，在家目录创建 <code>share</code> 共享目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/share</span><br><span class="line"><span class="comment"># 开放完整读写权限，避免 Windows 访问报错</span></span><br><span class="line"><span class="built_in">chmod</span> 777 ~/share</span><br><span class="line"><span class="comment"># 将目录归属设置为当前登录用户</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> <span class="variable">$USER</span>:<span class="variable">$USER</span> ~/share</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-为-Samba-单独设置访问密码"><a href="#2-为-Samba-单独设置访问密码" class="headerlink" title="2. 为 Samba 单独设置访问密码"></a>2. 为 Samba 单独设置访问密码</h3><p>Samba 不会复用系统登录密码，必须单独创建凭证：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> smbpasswd -a rayho</span><br></pre></td></tr></table></figure>
+
+<p>执行后连续输入两次自定义密码，该密码用于 Windows 端登录共享文件夹。</p>
+<h2 id="三、修改核心配置文件"><a href="#三、修改核心配置文件" class="headerlink" title="三、修改核心配置文件"></a>三、修改核心配置文件</h2><h3 id="1-编辑配置文件"><a href="#1-编辑配置文件" class="headerlink" title="1. 编辑配置文件"></a>1. 编辑配置文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> nano /etc/samba/smb.conf</span><br></pre></td></tr></table></figure>
+
+<p>将光标拉到文件最底部，粘贴以下共享配置：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[myshare]</span></span><br><span class="line">    <span class="attr">path</span> = /home/rayho/share</span><br><span class="line">    <span class="attr">browseable</span> = <span class="literal">yes</span></span><br><span class="line">    read <span class="attr">only</span> = <span class="literal">no</span></span><br><span class="line">    <span class="attr">writable</span> = <span class="literal">yes</span></span><br><span class="line">    guest <span class="attr">ok</span> = <span class="literal">no</span></span><br><span class="line">    create <span class="attr">mask</span> = <span class="number">0644</span></span><br><span class="line">    directory <span class="attr">mask</span> = <span class="number">0755</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>[myshare]</code></td>
+<td>Windows 网络列表展示的共享名称，可自定义</td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td>虚拟机内共享文件夹的绝对路径</td>
+</tr>
+<tr>
+<td><code>read only = no</code></td>
+<td>关闭只读，允许 Windows 上传、修改、删除文件</td>
+</tr>
+<tr>
+<td><code>guest ok = no</code></td>
+<td>关闭访客免密访问，必须输入账号密码（更安全）</td>
+</tr>
+<tr>
+<td><code>create mask / directory mask</code></td>
+<td>控制 Windows 新建文件&#x2F;文件夹在 Linux 内的默认权限</td>
+</tr>
+</tbody></table>
+<p>保存：<code>Ctrl+O</code> → 回车 → <code>Ctrl+X</code> 退出。</p>
+<h2 id="四、校验配置并启动服务"><a href="#四、校验配置并启动服务" class="headerlink" title="四、校验配置并启动服务"></a>四、校验配置并启动服务</h2><h3 id="1-检查配置语法"><a href="#1-检查配置语法" class="headerlink" title="1. 检查配置语法"></a>1. 检查配置语法</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">testparm</span><br></pre></td></tr></table></figure>
+
+<p>输出无报错代表配置文件格式正常。</p>
+<h3 id="2-重启服务并设置开机自启"><a href="#2-重启服务并设置开机自启" class="headerlink" title="2. 重启服务并设置开机自启"></a>2. 重启服务并设置开机自启</h3><p>Samba 依赖 <code>smbd</code>（文件共享）与 <code>nmbd</code>（局域网主机发现）两个服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl restart smbd nmbd</span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> smbd nmbd</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-放行防火墙端口"><a href="#3-放行防火墙端口" class="headerlink" title="3. 放行防火墙端口"></a>3. 放行防火墙端口</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ufw allow samba</span><br><span class="line"><span class="built_in">sudo</span> ufw reload</span><br></pre></td></tr></table></figure>
+
+<h2 id="五、Windows-访问-Samba-共享"><a href="#五、Windows-访问-Samba-共享" class="headerlink" title="五、Windows 访问 Samba 共享"></a>五、Windows 访问 Samba 共享</h2><h3 id="1-获取虚拟机内网-IP"><a href="#1-获取虚拟机内网-IP" class="headerlink" title="1. 获取虚拟机内网 IP"></a>1. 获取虚拟机内网 IP</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip a</span><br></pre></td></tr></table></figure>
+
+<p>找到网卡 <code>ens33</code> 对应的 <code>inet</code> 字段，示例地址：<code>192.168.137.129</code>。</p>
+<h3 id="2-快速打开共享目录"><a href="#2-快速打开共享目录" class="headerlink" title="2. 快速打开共享目录"></a>2. 快速打开共享目录</h3><p>按下 <code>Win + R</code>，输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\\虚拟机IP\myshare</span><br></pre></td></tr></table></figure>
+
+<p>示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\\192.168.137.129\myshare</span><br></pre></td></tr></table></figure>
+
+<p>回车后弹出登录窗口：</p>
+<ul>
+<li>用户名：Ubuntu 用户名（如 <code>rayho</code>）</li>
+<li>密码：<code>smbpasswd</code> 设置的 Samba 密码</li>
+</ul>
+<h3 id="3-映射永久网络驱动器（推荐）"><a href="#3-映射永久网络驱动器（推荐）" class="headerlink" title="3. 映射永久网络驱动器（推荐）"></a>3. 映射永久网络驱动器（推荐）</h3><ol>
+<li>打开「此电脑」，顶部点击「映射网络驱动器」</li>
+<li>文件夹输入：<code>\\虚拟机IP\myshare</code></li>
+<li>勾选「登录时重新连接」，点击完成</li>
+<li>输入账号密码后，此电脑会永久显示该共享盘</li>
+</ol>
+<h2 id="六、常见故障排查"><a href="#六、常见故障排查" class="headerlink" title="六、常见故障排查"></a>六、常见故障排查</h2><h3 id="1-Windows-无法找到共享主机"><a href="#1-Windows-无法找到共享主机" class="headerlink" title="1. Windows 无法找到共享主机"></a>1. Windows 无法找到共享主机</h3><ul>
+<li>虚拟机网卡网络模式设置为 <strong>NAT</strong>，不要使用仅主机模式</li>
+<li>检查服务运行状态：<code>systemctl status smbd</code></li>
+<li>临时关闭 Windows 专用网络防火墙后重试</li>
+</ul>
+<h3 id="2-能看到文件夹但无法写入"><a href="#2-能看到文件夹但无法写入" class="headerlink" title="2. 能看到文件夹但无法写入"></a>2. 能看到文件夹但无法写入</h3><ul>
+<li>重新给共享目录开放权限：<code>chmod 777 ~/share</code></li>
+<li>确认 <code>smb.conf</code> 中 <code>read only = no</code> 配置无误，重启服务生效</li>
+</ul>
+<h3 id="3-账号密码持续验证失败"><a href="#3-账号密码持续验证失败" class="headerlink" title="3. 账号密码持续验证失败"></a>3. 账号密码持续验证失败</h3><ul>
+<li>重新执行 <code>sudo smbpasswd -a rayho</code> 重置 Samba 密码</li>
+<li>Windows 登录框仅填写纯用户名，不要携带 IP 或域名前缀</li>
+</ul>
+<h3 id="4-开启免密访客访问（可选）"><a href="#4-开启免密访客访问（可选）" class="headerlink" title="4. 开启免密访客访问（可选）"></a>4. 开启免密访客访问（可选）</h3><p>安全性较低，仅适用于封闭内网环境。修改 <code>smb.conf</code> 共享块：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">guest <span class="attr">ok</span> = <span class="literal">yes</span></span><br><span class="line">guest <span class="attr">account</span> = rayho</span><br></pre></td></tr></table></figure>
+
+<p>保存后重启服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> systemctl restart smbd nmbd</span><br></pre></td></tr></table></figure>
+
+<h2 id="补充：VMware-hgfs-简易方案"><a href="#补充：VMware-hgfs-简易方案" class="headerlink" title="补充：VMware hgfs 简易方案"></a>补充：VMware hgfs 简易方案</h2><p>如果只是临时传输少量小文件，可使用 VMware 自带共享：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt install open-vm-tools -y</span><br></pre></td></tr></table></figure>
+
+<p>VMware 操作：虚拟机设置 → 选项 → 共享文件夹 → 添加 Windows 本地目录，选择「总是启用」。虚拟机内自动挂载至 <code>/mnt/hgfs/</code>。</p>
+<h3 id="方案局限"><a href="#方案局限" class="headerlink" title="方案局限"></a>方案局限</h3><ul>
+<li>大文件批量传输读写卡顿，IO 性能差</li>
+<li>Windows 复制到虚拟机的文件会丢失 Linux 权限与软链接特性</li>
+<li>虚拟机重启后偶尔出现挂载失效</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>长期开发、大量文件同步优先选择 Samba 共享，稳定性与速度最优</li>
+<li>Samba 密码独立于系统用户，配置完成后务必放行防火墙并重启服务</li>
+<li>Windows 访问依赖虚拟机内网 IP，推荐映射网络驱动器简化日常使用</li>
+<li>遇到连接或权限问题，优先检查配置文件语法、目录权限、防火墙规则三点</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://rayho-bool.github.io">Rayho</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://rayho-bool.github.io/2026/07/20/VMware-Ubuntu-Samba%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9%E9%85%8D%E7%BD%AE/">https://rayho-bool.github.io/2026/07/20/VMware-Ubuntu-Samba%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9%E9%85%8D%E7%BD%AE/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://rayho-bool.github.io" target="_blank">My Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Linux/">Linux</a><a class="post-meta__tags" href="/tags/Ubuntu/">Ubuntu</a><a class="post-meta__tags" href="/tags/VMware/">VMware</a><a class="post-meta__tags" href="/tags/Samba/">Samba</a><a class="post-meta__tags" href="/tags/Windows/">Windows</a><a class="post-meta__tags" href="/tags/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a></div><div class="post-share"><div class="social-share" data-image="https://avatars.githubusercontent.com/rayho-bool" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/07/21/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8A%E7%BD%91%E5%8A%A0%E9%80%9F-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E4%BB%A3%E7%90%86/" title="虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子</div></div><div class="info-2"><div class="info-item-1">最近在 VMware 里装了个 Ubuntu Server 虚拟机跑开发环境，结果发现从 GitHub 拉代码简直龟速——git clone 只有 22 KiB&#x2F;s，还时不时 Connection refused。但宿主机的 Windows 上开着梯子，浏览器访问 GitHub 秒开。于是研究了一下怎么让虚拟机共享宿主机的”加速通道”，过程比想象中简单，记录一下供大家参考。  为什么要这样折腾？虚拟机网络通常通过 NAT 或桥接模式上网。如果宿主机直连 GitHub 本身很快，那虚拟机也不会有问题；但实际情况往往是宿主机也要依赖代理才能流畅访问外网，而虚拟机默认并不会自动继承这个代理。 核心思路：在宿主机上把代理共享出来，让虚拟机里的流量指向宿主机 IP 的代理端口。所有请求先走到宿主机，再由宿主机的梯子转发出去，从而绕过虚拟机的网络限制。  准备工作：让宿主机代理”对外营业”无论你用 Clash、v2rayN、Shadowsocks 还是其他工具，都需要打开 Allow LAN（允许局域网连接） 功能，并记下代理端口。  Clash：默认 HTTP&#x2F;SOCK...</div></div></div></a><a class="pagination-related" href="/2026/06/26/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/" title="我的第一篇博客"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">我的第一篇博客</div></div><div class="info-2"><div class="info-item-1">Hello World这是我的第一篇博客文章，使用 Hexo + Butterfly 主题 搭建，托管在 GitHub Pages 上。 为什么选择 Hexo？ Markdown 写作，简单高效 一条命令生成静态页面 丰富的主题和插件生态 免费托管在 GitHub Pages  接下来的计划写点自己想写的东西。 1hexo new &quot;文章标题&quot;   种一棵树最好的时间是十年前，其次是现在。  </div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/07/21/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8A%E7%BD%91%E5%8A%A0%E9%80%9F-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E4%BB%A3%E7%90%86/" title="虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-21</div><div class="info-item-2">虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子</div></div><div class="info-2"><div class="info-item-1">最近在 VMware 里装了个 Ubuntu Server 虚拟机跑开发环境，结果发现从 GitHub 拉代码简直龟速——git clone 只有 22 KiB&#x2F;s，还时不时 Connection refused。但宿主机的 Windows 上开着梯子，浏览器访问 GitHub 秒开。于是研究了一下怎么让虚拟机共享宿主机的”加速通道”，过程比想象中简单，记录一下供大家参考。  为什么要这样折腾？虚拟机网络通常通过 NAT 或桥接模式上网。如果宿主机直连 GitHub 本身很快，那虚拟机也不会有问题；但实际情况往往是宿主机也要依赖代理才能流畅访问外网，而虚拟机默认并不会自动继承这个代理。 核心思路：在宿主机上把代理共享出来，让虚拟机里的流量指向宿主机 IP 的代理端口。所有请求先走到宿主机，再由宿主机的梯子转发出去，从而绕过虚拟机的网络限制。  准备工作：让宿主机代理”对外营业”无论你用 Clash、v2rayN、Shadowsocks 还是其他工具，都需要打开 Allow LAN（允许局域网连接） 功能，并记下代理端口。  Clash：默认 HTTP&#x2F;SOCK...</div></div></div></a><a class="pagination-related" href="/2026/07/22/select-poll-epoll%E5%BA%95%E5%B1%82%E6%89%A7%E8%A1%8C%E5%8E%9F%E7%90%86/" title="select&#x2F;poll&#x2F;epoll 底层执行原理详解"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-22</div><div class="info-item-2">select&#x2F;poll&#x2F;epoll 底层执行原理详解</div></div><div class="info-2"><div class="info-item-1">从底层的数据结构、设计思想、完整工作流程入手，介绍 Linux 上的三种 IO 多路复用模型。  select通过一个系统调用同时监控多个文件描述符（FD）的 IO 事件，实现单线程处理多连接的能力。 一、核心设计：用”位图”监控多个 FDselect 核心是通过 fd_set 位图结构管理需要监控的文件描述符，配合 select 系统调用让内核检查这些 fd 的状态。 关键数据结构：fd_set（文件描述符集合），fd_set 的第 3 位为 1，表示监控 FD&#x3D;3 的事件。 二、代码和执行流程123456789101112131415161718192021222324252627282930313233343536373839404142int main() &#123;    // 1. 创建监听套接字（sockfd：服务器的&quot;门口&quot;）    int sockfd = socket(AF_INET, SOCK_STREAM, 0);    bind(sockfd, ...);    listen(sockfd, 10);    // 2. 初...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://avatars.githubusercontent.com/rayho-bool" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Rayho</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/rayho-bool"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/rayho-bool" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的博客</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">2.</span> <span class="toc-text">两种文件共享方案对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%AE%89%E8%A3%85-Samba-%E6%9C%8D%E5%8A%A1"><span class="toc-number">3.</span> <span class="toc-text">一、安装 Samba 服务</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9B%B4%E6%96%B0%E8%BD%AF%E4%BB%B6%E6%BA%90%E5%B9%B6%E5%AE%89%E8%A3%85"><span class="toc-number">3.1.</span> <span class="toc-text">1. 更新软件源并安装</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%88%9B%E5%BB%BA%E5%85%B1%E4%BA%AB%E7%9B%AE%E5%BD%95%E5%B9%B6%E9%85%8D%E7%BD%AE%E6%9D%83%E9%99%90"><span class="toc-number">4.</span> <span class="toc-text">二、创建共享目录并配置权限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%96%B0%E5%BB%BA%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="toc-number">4.1.</span> <span class="toc-text">1. 新建共享文件夹</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%B8%BA-Samba-%E5%8D%95%E7%8B%AC%E8%AE%BE%E7%BD%AE%E8%AE%BF%E9%97%AE%E5%AF%86%E7%A0%81"><span class="toc-number">4.2.</span> <span class="toc-text">2. 为 Samba 单独设置访问密码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BF%AE%E6%94%B9%E6%A0%B8%E5%BF%83%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-number">5.</span> <span class="toc-text">三、修改核心配置文件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%BC%96%E8%BE%91%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-number">5.1.</span> <span class="toc-text">1. 编辑配置文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E"><span class="toc-number">5.2.</span> <span class="toc-text">参数说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%A0%A1%E9%AA%8C%E9%85%8D%E7%BD%AE%E5%B9%B6%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1"><span class="toc-number">6.</span> <span class="toc-text">四、校验配置并启动服务</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A3%80%E6%9F%A5%E9%85%8D%E7%BD%AE%E8%AF%AD%E6%B3%95"><span class="toc-number">6.1.</span> <span class="toc-text">1. 检查配置语法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E9%87%8D%E5%90%AF%E6%9C%8D%E5%8A%A1%E5%B9%B6%E8%AE%BE%E7%BD%AE%E5%BC%80%E6%9C%BA%E8%87%AA%E5%90%AF"><span class="toc-number">6.2.</span> <span class="toc-text">2. 重启服务并设置开机自启</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%94%BE%E8%A1%8C%E9%98%B2%E7%81%AB%E5%A2%99%E7%AB%AF%E5%8F%A3"><span class="toc-number">6.3.</span> <span class="toc-text">3. 放行防火墙端口</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Windows-%E8%AE%BF%E9%97%AE-Samba-%E5%85%B1%E4%BA%AB"><span class="toc-number">7.</span> <span class="toc-text">五、Windows 访问 Samba 共享</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E7%BD%91-IP"><span class="toc-number">7.1.</span> <span class="toc-text">1. 获取虚拟机内网 IP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%BF%AB%E9%80%9F%E6%89%93%E5%BC%80%E5%85%B1%E4%BA%AB%E7%9B%AE%E5%BD%95"><span class="toc-number">7.2.</span> <span class="toc-text">2. 快速打开共享目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%98%A0%E5%B0%84%E6%B0%B8%E4%B9%85%E7%BD%91%E7%BB%9C%E9%A9%B1%E5%8A%A8%E5%99%A8%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">7.3.</span> <span class="toc-text">3. 映射永久网络驱动器（推荐）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B8%B8%E8%A7%81%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">六、常见故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Windows-%E6%97%A0%E6%B3%95%E6%89%BE%E5%88%B0%E5%85%B1%E4%BA%AB%E4%B8%BB%E6%9C%BA"><span class="toc-number">8.1.</span> <span class="toc-text">1. Windows 无法找到共享主机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%83%BD%E7%9C%8B%E5%88%B0%E6%96%87%E4%BB%B6%E5%A4%B9%E4%BD%86%E6%97%A0%E6%B3%95%E5%86%99%E5%85%A5"><span class="toc-number">8.2.</span> <span class="toc-text">2. 能看到文件夹但无法写入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%B4%A6%E5%8F%B7%E5%AF%86%E7%A0%81%E6%8C%81%E7%BB%AD%E9%AA%8C%E8%AF%81%E5%A4%B1%E8%B4%A5"><span class="toc-number">8.3.</span> <span class="toc-text">3. 账号密码持续验证失败</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%BC%80%E5%90%AF%E5%85%8D%E5%AF%86%E8%AE%BF%E5%AE%A2%E8%AE%BF%E9%97%AE%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">8.4.</span> <span class="toc-text">4. 开启免密访客访问（可选）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9AVMware-hgfs-%E7%AE%80%E6%98%93%E6%96%B9%E6%A1%88"><span class="toc-number">9.</span> <span class="toc-text">补充：VMware hgfs 简易方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%B1%80%E9%99%90"><span class="toc-number">9.1.</span> <span class="toc-text">方案局限</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/12/Keil-MDK%E8%B0%83%E8%AF%95STM32%E6%97%B6Peripherals%E8%8F%9C%E5%8D%95%E7%A9%BA%E7%99%BD%E9%97%AE%E9%A2%98/" title="彻底解决Keil MDK调试STM32时Peripherals菜单空白、仅显示Core Peripherals问题">彻底解决Keil MDK调试STM32时Peripherals菜单空白、仅显示Core Peripherals问题</a><time datetime="2026-09-12T04:00:00.000Z" title="发表于 2026-09-12 12:00:00">2026-09-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/22/select-poll-epoll%E5%BA%95%E5%B1%82%E6%89%A7%E8%A1%8C%E5%8E%9F%E7%90%86/" title="select/poll/epoll 底层执行原理详解">select/poll/epoll 底层执行原理详解</a><time datetime="2026-07-22T04:00:00.000Z" title="发表于 2026-07-22 12:00:00">2026-07-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/21/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8A%E7%BD%91%E5%8A%A0%E9%80%9F-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E4%BB%A3%E7%90%86/" title="虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子">虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子</a><time datetime="2026-07-21T04:00:00.000Z" title="发表于 2026-07-21 12:00:00">2026-07-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/20/VMware-Ubuntu-Samba%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9%E9%85%8D%E7%BD%AE/" title="VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件">VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件</a><time datetime="2026-07-20T04:00:00.000Z" title="发表于 2026-07-20 12:00:00">2026-07-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/26/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2/" title="我的第一篇博客">我的第一篇博客</a><time datetime="2026-06-26T17:53:56.000Z" title="发表于 2026-06-27 01:53:56">2026-06-27</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2026 By Rayho</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.5</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>
