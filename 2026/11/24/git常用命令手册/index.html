@@ -1,0 +1,338 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Git 常用命令手册 | RayHo's Blog</title><meta name="author" content="Rayho"><meta name="copyright" content="Rayho"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Git 常用命令手册 面向日常开发。按”我要做什么”组织，不按命令字母表排。约定：&lt;xxx&gt; 是占位符，尖括号本身不要输入。   0. 一次性配置123456789101112131415161718git config --global user.name &quot;Rayho&quot;git config --global user.email &quot;you@exampl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git 常用命令手册">
+<meta property="og:url" content="https://rayhobool.com/2026/11/24/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%89%8B%E5%86%8C/index.html">
+<meta property="og:site_name" content="RayHo&#39;s Blog">
+<meta property="og:description" content="Git 常用命令手册 面向日常开发。按”我要做什么”组织，不按命令字母表排。约定：&lt;xxx&gt; 是占位符，尖括号本身不要输入。   0. 一次性配置123456789101112131415161718git config --global user.name &quot;Rayho&quot;git config --global user.email &quot;you@exampl">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://avatars.githubusercontent.com/rayho-bool">
+<meta property="article:published_time" content="2026-11-24T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-11-24T05:43:51.619Z">
+<meta property="article:author" content="Rayho">
+<meta property="article:tag" content="Git">
+<meta property="article:tag" content="命令行">
+<meta property="article:tag" content="开发工具">
+<meta property="article:tag" content="版本控制">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://avatars.githubusercontent.com/rayho-bool"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Git 常用命令手册",
+  "url": "https://rayhobool.com/2026/11/24/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%89%8B%E5%86%8C/",
+  "image": "https://avatars.githubusercontent.com/rayho-bool",
+  "datePublished": "2026-11-24T04:00:00.000Z",
+  "dateModified": "2026-11-24T05:43:51.619Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Rayho",
+      "url": "https://rayhobool.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/"><link rel="canonical" href="https://rayhobool.com/2026/11/24/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%89%8B%E5%86%8C/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Git 常用命令手册',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>#site-title{font-size:3.7em!important;text-align:center!important}@media screen and (min-width:768px){#site-title{font-size:5.7em!important}}</style><style>#page-header{background-color:transparent!important}</style><meta name="generator" content="Hexo 8.1.2"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/osselo-Ask_a_friend.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://avatars.githubusercontent.com/rayho-bool" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/osselo-Ask_a_friend.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">RayHo's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Git 常用命令手册</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Git 常用命令手册</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-11-24T04:00:00.000Z" title="发表于 2026-11-24 12:00:00">2026-11-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-11-24T05:43:51.619Z" title="更新于 2026-11-24 13:43:51">2026-11-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Git-常用命令手册"><a href="#Git-常用命令手册" class="headerlink" title="Git 常用命令手册"></a>Git 常用命令手册</h1><blockquote>
+<p>面向日常开发。按”我要做什么”组织，不按命令字母表排。<br>约定：<code>&lt;xxx&gt;</code> 是占位符，尖括号本身不要输入。</p>
+</blockquote>
+<hr>
+<h2 id="0-一次性配置"><a href="#0-一次性配置" class="headerlink" title="0. 一次性配置"></a>0. 一次性配置</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.name <span class="string">&quot;Rayho&quot;</span></span><br><span class="line">git config --global user.email <span class="string">&quot;you@example.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认分支名 main（新仓库生效）</span></span><br><span class="line">git config --global init.defaultBranch main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 换行符：Windows 上推荐，提交时转 LF，检出时保持 LF</span></span><br><span class="line">git config --global core.autocrlf <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 常用别名（省一半打字）</span></span><br><span class="line">git config --global alias.st status</span><br><span class="line">git config --global alias.co checkout</span><br><span class="line">git config --global alias.br branch</span><br><span class="line">git config --global alias.ci commit</span><br><span class="line">git config --global alias.lg <span class="string">&quot;log --oneline --graph --decorate --all&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 看当前所有配置</span></span><br><span class="line">git config --list --show-origin</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：<code>--global</code> 写到 <code>~/.gitconfig</code>；不加则只作用于当前仓库（写 <code>.git/config</code>）。仓库级配置优先级更高。</p>
+<hr>
+<h2 id="1-创建-获取仓库"><a href="#1-创建-获取仓库" class="headerlink" title="1. 创建 &#x2F; 获取仓库"></a>1. 创建 &#x2F; 获取仓库</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git init                    <span class="comment"># 当前目录变成仓库</span></span><br><span class="line">git init &lt;<span class="built_in">dir</span>&gt;              <span class="comment"># 新建目录并初始化</span></span><br><span class="line">git <span class="built_in">clone</span> &lt;url&gt;             <span class="comment"># 克隆</span></span><br><span class="line">git <span class="built_in">clone</span> &lt;url&gt; &lt;<span class="built_in">dir</span>&gt;       <span class="comment"># 克隆到指定目录名</span></span><br><span class="line">git <span class="built_in">clone</span> --depth 1 &lt;url&gt;   <span class="comment"># 浅克隆，只要最新一次提交（快，适合只看代码）</span></span><br><span class="line">git <span class="built_in">clone</span> -b &lt;branch&gt; &lt;url&gt; <span class="comment"># 只拉某个分支</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="2-日常主线：改-→-存-→-提"><a href="#2-日常主线：改-→-存-→-提" class="headerlink" title="2. 日常主线：改 → 存 → 提"></a>2. 日常主线：改 → 存 → 提</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">git status                  <span class="comment"># 看谁改了、谁被暂存了（最常用，随时敲）</span></span><br><span class="line">git status -s               <span class="comment"># 精简输出</span></span><br><span class="line"></span><br><span class="line">git diff                    <span class="comment"># 工作区 vs 暂存区（还没 add 的改动）</span></span><br><span class="line">git diff --staged           <span class="comment"># 暂存区 vs 上次提交（add 了还没 commit）</span></span><br><span class="line">git diff HEAD               <span class="comment"># 工作区 vs 上次提交（全部改动）</span></span><br><span class="line"></span><br><span class="line">git add &lt;file&gt;              <span class="comment"># 暂存指定文件</span></span><br><span class="line">git add .                   <span class="comment"># 暂存当前目录所有改动（含删除，不含 ignore 的）</span></span><br><span class="line">git add -p                  <span class="comment"># 逐块挑选暂存（推荐，避免误提）</span></span><br><span class="line"></span><br><span class="line">git commit -m <span class="string">&quot;msg&quot;</span>         <span class="comment"># 提交</span></span><br><span class="line">git commit -am <span class="string">&quot;msg&quot;</span>        <span class="comment"># 跳过 add，直接提交已跟踪文件的改动（新文件不算）</span></span><br><span class="line">git commit --amend          <span class="comment"># 修改上一次提交（改信息 / 补文件）</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>提交信息习惯</strong>：第一行 50 字内说清”做了什么”，空一行再写”为什么”。<br><code>--amend</code> 只改本地未推送的提交，推过的会被改写，慎用。</p>
+<hr>
+<h2 id="3-查看历史"><a href="#3-查看历史" class="headerlink" title="3. 查看历史"></a>3. 查看历史</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">log</span>                       <span class="comment"># 完整历史</span></span><br><span class="line">git <span class="built_in">log</span> --oneline             <span class="comment"># 一行一条</span></span><br><span class="line">git <span class="built_in">log</span> --oneline --graph --all --decorate   <span class="comment"># 图形化看分支（别名 lg）</span></span><br><span class="line">git <span class="built_in">log</span> -p &lt;file&gt;             <span class="comment"># 某文件的改动历史 + diff</span></span><br><span class="line">git <span class="built_in">log</span> --<span class="built_in">stat</span>                <span class="comment"># 每条提交改了哪些文件</span></span><br><span class="line">git <span class="built_in">log</span> -n 5                  <span class="comment"># 只看最近 5 条</span></span><br><span class="line">git <span class="built_in">log</span> --author=<span class="string">&quot;rayho&quot;</span>      <span class="comment"># 按作者过滤</span></span><br><span class="line">git <span class="built_in">log</span> -S <span class="string">&quot;keyword&quot;</span>          <span class="comment"># 搜索哪次提交增删了这段代码（找 bug 出身神器）</span></span><br><span class="line">git <span class="built_in">log</span> --follow &lt;file&gt;       <span class="comment"># 跟着重命名追踪文件历史</span></span><br><span class="line"></span><br><span class="line">git show &lt;commit&gt;             <span class="comment"># 看某次提交的具体内容</span></span><br><span class="line">git blame &lt;file&gt;              <span class="comment"># 每行是谁、哪次提交改的</span></span><br><span class="line">git shortlog -sn              <span class="comment"># 贡献者提交数排行</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-分支"><a href="#4-分支" class="headerlink" title="4. 分支"></a>4. 分支</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">git branch                    <span class="comment"># 本地分支列表</span></span><br><span class="line">git branch -a                 <span class="comment"># 含远程分支</span></span><br><span class="line">git branch -vv                <span class="comment"># 分支 + 跟踪的远程分支 + 领先/落后</span></span><br><span class="line">git switch &lt;branch&gt;           <span class="comment"># 切换分支（新语法，推荐）</span></span><br><span class="line">git switch -c &lt;branch&gt;        <span class="comment"># 新建并切换</span></span><br><span class="line">git checkout -b &lt;branch&gt;      <span class="comment"># 同上（老写法，等价）</span></span><br><span class="line">git switch -c &lt;branch&gt; origin/&lt;branch&gt;   <span class="comment"># 基于远程分支建本地分支</span></span><br><span class="line"></span><br><span class="line">git branch -d &lt;branch&gt;        <span class="comment"># 删已合并的分支（安全）</span></span><br><span class="line">git branch -D &lt;branch&gt;        <span class="comment"># 强制删（未合并也删，慎用）</span></span><br><span class="line">git branch -m &lt;old&gt; &lt;new&gt;     <span class="comment"># 重命名分支</span></span><br><span class="line"></span><br><span class="line">git merge &lt;branch&gt;            <span class="comment"># 把 &lt;branch&gt; 合并进当前分支</span></span><br><span class="line">git merge --no-ff &lt;branch&gt;    <span class="comment"># 强制产生合并提交（保留分支痕迹）</span></span><br><span class="line">git merge --abort             <span class="comment"># 合并冲突时放弃，回到合并前</span></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>switch</code> vs <code>checkout</code></strong>：<code>checkout</code> 一个命令干三件事（切分支、还原文件、切提交），容易误伤。Git 2.23+ 拆成 <code>switch</code>（切分支）和 <code>restore</code>（还原文件），建议用新命令。</p>
+<hr>
+<h2 id="5-远程协作"><a href="#5-远程协作" class="headerlink" title="5. 远程协作"></a>5. 远程协作</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">git remote -v                        <span class="comment"># 看远程地址</span></span><br><span class="line">git remote add origin &lt;url&gt;          <span class="comment"># 添加远程</span></span><br><span class="line">git remote set-url origin &lt;new-url&gt;  <span class="comment"># 改远程地址</span></span><br><span class="line"></span><br><span class="line">git fetch                 <span class="comment"># 拉远程更新，不动工作区（安全）</span></span><br><span class="line">git fetch --prune         <span class="comment"># 顺便清理已删除的远程分支引用</span></span><br><span class="line">git pull                  <span class="comment"># = fetch + merge</span></span><br><span class="line">git pull --rebase         <span class="comment"># = fetch + rebase（历史更干净，推荐）</span></span><br><span class="line"></span><br><span class="line">git push                          <span class="comment"># 推送当前分支</span></span><br><span class="line">git push -u origin &lt;branch&gt;       <span class="comment"># 首次推送并建立跟踪关系</span></span><br><span class="line">git push origin --delete &lt;branch&gt; <span class="comment"># 删远程分支</span></span><br><span class="line">git push --tags                   <span class="comment"># 推标签</span></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>pull</code> 冲突了怎么办</strong>：解冲突 → <code>git add &lt;冲突文件&gt;</code> → <code>git commit</code>（rebase 模式下是 <code>git rebase --continue</code>）。想反悔：<code>git merge --abort</code> 或 <code>git rebase --abort</code>。</p>
+<hr>
+<h2 id="6-撤销与回退（重点，看清楚再敲）"><a href="#6-撤销与回退（重点，看清楚再敲）" class="headerlink" title="6. 撤销与回退（重点，看清楚再敲）"></a>6. 撤销与回退（重点，看清楚再敲）</h2><h3 id="只改了文件，还没-add"><a href="#只改了文件，还没-add" class="headerlink" title="只改了文件，还没 add"></a>只改了文件，还没 add</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git restore &lt;file&gt;            <span class="comment"># 丢弃工作区改动（不可恢复！）</span></span><br><span class="line">git restore .                 <span class="comment"># 丢弃所有工作区改动</span></span><br><span class="line">git checkout -- &lt;file&gt;        <span class="comment"># 老写法，等价</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="已经-add，还没-commit"><a href="#已经-add，还没-commit" class="headerlink" title="已经 add，还没 commit"></a>已经 add，还没 commit</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git restore --staged &lt;file&gt;   <span class="comment"># 取消暂存，改动还在工作区</span></span><br><span class="line">git reset HEAD &lt;file&gt;         <span class="comment"># 老写法，等价</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="已经-commit，还没-push"><a href="#已经-commit，还没-push" class="headerlink" title="已经 commit，还没 push"></a>已经 commit，还没 push</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 保留改动，把提交撤掉（改动回到工作区）</span></span><br><span class="line">git reset --soft HEAD~1       <span class="comment"># 撤销提交，改动留在暂存区</span></span><br><span class="line">git reset HEAD~1              <span class="comment"># 撤销提交和暂存，改动留在工作区（默认 mixed）</span></span><br><span class="line">git reset --hard HEAD~1       <span class="comment"># 彻底丢弃这次提交和改动（危险）</span></span><br><span class="line"></span><br><span class="line">git reset --hard &lt;commit&gt;     <span class="comment"># 回退到某个提交，之后的全丢（危险）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="已经-push-了（不要-reset，用-revert）"><a href="#已经-push-了（不要-reset，用-revert）" class="headerlink" title="已经 push 了（不要 reset，用 revert）"></a>已经 push 了（不要 reset，用 revert）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git revert &lt;commit&gt;           <span class="comment"># 生成一个反向提交，安全，适合公共分支</span></span><br><span class="line">git revert HEAD               <span class="comment"># 撤销最近一次提交</span></span><br><span class="line">git revert --no-commit &lt;c1&gt; &lt;c2&gt;   <span class="comment"># 连续撤销多次，最后一起提交</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="误操作救回"><a href="#误操作救回" class="headerlink" title="误操作救回"></a>误操作救回</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git reflog                    <span class="comment"># 看 HEAD 的移动记录（后悔药，本地有效）</span></span><br><span class="line">git reset --hard HEAD@&#123;2&#125;     <span class="comment"># 回到 reflog 里的某个状态</span></span><br><span class="line">git cherry-pick &lt;commit&gt;      <span class="comment"># 把某个提交摘到当前分支</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>记住这条</strong>：只要提交过（哪怕 reset 掉了），<code>reflog</code> 里都还在，默认保留 90 天。真丢了改动才叫丢了。</p>
+<hr>
+<h2 id="7-暂存现场-stash"><a href="#7-暂存现场-stash" class="headerlink" title="7. 暂存现场 stash"></a>7. 暂存现场 stash</h2><p>切分支时手上有半成品，不想提交：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">git stash                     <span class="comment"># 收起工作区和暂存区改动</span></span><br><span class="line">git stash -u                  <span class="comment"># 连未跟踪的新文件一起收</span></span><br><span class="line">git stash list                <span class="comment"># 看 stash 列表</span></span><br><span class="line">git stash pop                 <span class="comment"># 恢复最近一次并删除记录</span></span><br><span class="line">git stash apply stash@&#123;2&#125;     <span class="comment"># 恢复指定的一次，保留记录</span></span><br><span class="line">git stash drop stash@&#123;0&#125;      <span class="comment"># 删掉某条记录</span></span><br><span class="line">git stash show -p stash@&#123;0&#125;   <span class="comment"># 看 stash 里到底改了什么</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-变基-rebase"><a href="#8-变基-rebase" class="headerlink" title="8. 变基 rebase"></a>8. 变基 rebase</h2><p>把当前分支的提交”搬”到另一个基点上，历史变成一条直线。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git rebase &lt;branch&gt;              <span class="comment"># 把当前分支变基到 &lt;branch&gt;</span></span><br><span class="line">git rebase -i HEAD~3             <span class="comment"># 交互式整理最近 3 次提交</span></span><br><span class="line">git rebase --<span class="built_in">continue</span>            <span class="comment"># 解决冲突后继续</span></span><br><span class="line">git rebase --abort               <span class="comment"># 放弃变基，回到原状</span></span><br><span class="line">git rebase --skip                <span class="comment"># 跳过当前这个提交</span></span><br></pre></td></tr></table></figure>
+
+<p>交互式 rebase 里的指令：</p>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pick</code></td>
+<td>保留该提交</td>
+</tr>
+<tr>
+<td><code>reword</code></td>
+<td>保留但改提交信息</td>
+</tr>
+<tr>
+<td><code>edit</code></td>
+<td>停下来修改该提交内容</td>
+</tr>
+<tr>
+<td><code>squash</code></td>
+<td>合并到上一个提交，提交信息合并</td>
+</tr>
+<tr>
+<td><code>fixup</code></td>
+<td>合并到上一个提交，丢弃本条信息</td>
+</tr>
+<tr>
+<td><code>drop</code></td>
+<td>删掉该提交</td>
+</tr>
+</tbody></table>
+<p><strong>铁律</strong>：只对<strong>自己本地、没推送过</strong>的提交做 rebase。改公共分支历史 &#x3D; 给所有人添麻烦。</p>
+<hr>
+<h2 id="9-标签"><a href="#9-标签" class="headerlink" title="9. 标签"></a>9. 标签</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">git tag                        <span class="comment"># 列出标签</span></span><br><span class="line">git tag v1.0.0                 <span class="comment"># 轻量标签</span></span><br><span class="line">git tag -a v1.0.0 -m <span class="string">&quot;release&quot;</span> <span class="comment"># 附注标签（推荐，带信息）</span></span><br><span class="line">git tag -d v1.0.0              <span class="comment"># 删本地标签</span></span><br><span class="line">git push origin v1.0.0         <span class="comment"># 推单个标签</span></span><br><span class="line">git push origin --tags         <span class="comment"># 推所有标签</span></span><br><span class="line">git push origin --delete v1.0.0 <span class="comment"># 删远程标签</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="10-常见救火场景"><a href="#10-常见救火场景" class="headerlink" title="10. 常见救火场景"></a>10. 常见救火场景</h2><p><strong>提交里混进了不该提交的文件</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">rm</span> --cached &lt;file&gt;         <span class="comment"># 从版本控制移除，本地文件保留</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&lt;file&gt;&quot;</span> &gt;&gt; .gitignore</span><br><span class="line">git commit --amend             <span class="comment"># 若还没推送，直接并进上次提交</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>改错了提交信息</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git commit --amend -m <span class="string">&quot;新信息&quot;</span>          <span class="comment"># 最近一次</span></span><br><span class="line">git rebase -i HEAD~3                    <span class="comment"># 更早的：把对应行改成 reword</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>两个分支都想看，但不想提交</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash &amp;&amp; git switch other &amp;&amp; git stash pop</span><br></pre></td></tr></table></figure>
+
+<p><strong>想看看某个文件在过去某个版本长什么样</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git show &lt;commit&gt;:&lt;path/to/file&gt;</span><br><span class="line">git show HEAD~2:src/main.c &gt; /tmp/old.c</span><br></pre></td></tr></table></figure>
+
+<p><strong>不小心在 main 上改了代码，应该在新分支上</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git switch -c feature      <span class="comment"># 改动会跟着过去，因为还没提交</span></span><br><span class="line"><span class="comment"># 已提交的话：</span></span><br><span class="line">git branch feature         <span class="comment"># 在当前位置建分支</span></span><br><span class="line">git reset --hard origin/main   <span class="comment"># main 退回去</span></span><br><span class="line">git switch feature</span><br></pre></td></tr></table></figure>
+
+<p><strong>找哪次提交引入了 bug</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git bisect start</span><br><span class="line">git bisect bad               <span class="comment"># 当前是坏的</span></span><br><span class="line">git bisect good &lt;已知好的commit&gt;</span><br><span class="line"><span class="comment"># 之后每轮测试，标记 good/bad，最后会定位到引入问题的提交</span></span><br><span class="line">git bisect reset</span><br></pre></td></tr></table></figure>
+
+<p><strong>清理未跟踪的垃圾文件</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git clean -n                 <span class="comment"># 先干跑，看清楚要删什么（务必先跑这个）</span></span><br><span class="line">git clean -fd                <span class="comment"># 删未跟踪文件和目录</span></span><br><span class="line">git clean -fdx               <span class="comment"># 连 .gitignore 里的也删（危险）</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>忽略文件规则</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .gitignore 示例</span></span><br><span class="line">*.o</span><br><span class="line">*.exe</span><br><span class="line">build/</span><br><span class="line">.zed/</span><br><span class="line">!important.o        <span class="comment"># 感叹号表示例外，不忽略</span></span><br></pre></td></tr></table></figure>
+
+<p>已经提交过的文件再加进 <code>.gitignore</code> 不会生效，得先 <code>git rm --cached</code>。</p>
+<hr>
+<h2 id="11-危险等级速查"><a href="#11-危险等级速查" class="headerlink" title="11. 危险等级速查"></a>11. 危险等级速查</h2><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>危险度</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>git restore &lt;file&gt;</code></td>
+<td>高</td>
+<td>丢弃未提交改动，不可恢复</td>
+</tr>
+<tr>
+<td><code>git reset --hard</code></td>
+<td>高</td>
+<td>丢弃提交和改动，reflog 可救</td>
+</tr>
+<tr>
+<td><code>git clean -fdx</code></td>
+<td>高</td>
+<td>删文件，不进回收站</td>
+</tr>
+<tr>
+<td><code>git push --force</code></td>
+<td>极高</td>
+<td>覆盖远程历史，别人工作可能丢</td>
+</tr>
+<tr>
+<td><code>git push --force-with-lease</code></td>
+<td>中</td>
+<td>力推的安全版，远程被别人改过会拒绝</td>
+</tr>
+<tr>
+<td><code>git rebase</code> 公共分支</td>
+<td>高</td>
+<td>改写他人历史</td>
+</tr>
+<tr>
+<td><code>git branch -D</code></td>
+<td>中</td>
+<td>未合并分支直接删</td>
+</tr>
+<tr>
+<td><code>git revert</code></td>
+<td>低</td>
+<td>安全，只是新增提交</td>
+</tr>
+<tr>
+<td><code>git stash</code></td>
+<td>低</td>
+<td>安全，可恢复</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="12-一条命令看懂当前状况"><a href="#12-一条命令看懂当前状况" class="headerlink" title="12. 一条命令看懂当前状况"></a>12. 一条命令看懂当前状况</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git status -sb &amp;&amp; git <span class="built_in">log</span> --oneline -5 &amp;&amp; git stash list</span><br></pre></td></tr></table></figure>
+
+<p>日常起手式：先 <code>git status</code>，再看 <code>git diff</code>，然后才动手。90% 的 git 事故源于没看清状态就敲命令。</p>
+<hr>
+<h2 id="附：学习资源"><a href="#附：学习资源" class="headerlink" title="附：学习资源"></a>附：学习资源</h2><ul>
+<li>官方书（免费全本，中文）：<a target="_blank" rel="noopener" href="https://git-scm.com/book/zh/v2">https://git-scm.com/book/zh/v2</a></li>
+<li>交互式练习分支操作：<a target="_blank" rel="noopener" href="https://learngitbranching.js.org/?locale=zh_CN">https://learngitbranching.js.org/?locale=zh_CN</a></li>
+<li>查命令参数：<code>git help &lt;command&gt;</code> 或 <code>git &lt;command&gt; -h</code></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://rayhobool.com">Rayho</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://rayhobool.com/2026/11/24/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%89%8B%E5%86%8C/">https://rayhobool.com/2026/11/24/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%89%8B%E5%86%8C/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://rayhobool.com" target="_blank">RayHo's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/">开发工具</a><a class="post-meta__tags" href="/tags/Git/">Git</a><a class="post-meta__tags" href="/tags/%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6/">版本控制</a><a class="post-meta__tags" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/">命令行</a></div><div class="post-share"><div class="social-share" data-image="https://avatars.githubusercontent.com/rayho-bool" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/11/05/vim-manual-zh/" title="Vim 中文手册"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Vim 中文手册</div></div><div class="info-2"><div class="info-item-1">Vim 中文手册 基于 vimtutor 1.7 完整整理 · 7 章 33 课 · 认真走一遍约需 25–30 分钟  一份从零开始、边做边学的手册。走完它，你就能把 Vim 当成日常编辑器来用了。  目录 开始之前 第 1 章 活下来：移动、退出、改字 第 2 章 删除与撤销 第 3 章 粘贴 · 替换 · 修改 第 4 章 定位 · 搜索 · 替换 第 5 章 外部命令与文件读写 第 6 章 插入 · 复制 · 选项 第 7 章 帮助与配置 附录 A 命令速查表 附录 B 五种模式 附录 C 常见坑与练习建议 附录 D 结语与延伸   开始之前Vim 是一个极其强大的编辑器，命令多到任何一本教程都写不完。这份手册只挑出最必需的那部分——刚好够你把它当作一个通用编辑器顺手地用起来。 本教程是为「用」而设计的。你必须真的敲下这些命令，才能学会它们；只是把文字读一遍，合上页面就会忘光。  注意课程中的命令会修改文本。请先复制一份文件用来练手，别拿重要文件做实验。  12cp vimtutor-en.txt mytutor.txtvim mytutor.txt  开始前的三条约定 ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/07/21/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8A%E7%BD%91%E5%8A%A0%E9%80%9F-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E4%BB%A3%E7%90%86/" title="虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-21</div><div class="info-item-2">虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子</div></div><div class="info-2"><div class="info-item-1">最近在 VMware 里装了个 Ubuntu Server 虚拟机跑开发环境，结果发现从 GitHub 拉代码简直龟速——git clone 只有 22 KiB&#x2F;s，还时不时 Connection refused。但宿主机的 Windows 上开着梯子，浏览器访问 GitHub 秒开。于是研究了一下怎么让虚拟机共享宿主机的”加速通道”，过程比想象中简单，记录一下供大家参考。  为什么要这样折腾？虚拟机网络通常通过 NAT 或桥接模式上网。如果宿主机直连 GitHub 本身很快，那虚拟机也不会有问题；但实际情况往往是宿主机也要依赖代理才能流畅访问外网，而虚拟机默认并不会自动继承这个代理。 核心思路：在宿主机上把代理共享出来，让虚拟机里的流量指向宿主机 IP 的代理端口。所有请求先走到宿主机，再由宿主机的梯子转发出去，从而绕过虚拟机的网络限制。  准备工作：让宿主机代理”对外营业”无论你用 Clash、v2rayN、Shadowsocks 还是其他工具，都需要打开 Allow LAN（允许局域网连接） 功能，并记下代理端口。  Clash：默认 HTTP&#x2F;SOCK...</div></div></div></a><a class="pagination-related" href="/2026/07/20/VMware-Ubuntu-Samba%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9%E9%85%8D%E7%BD%AE/" title="VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-20</div><div class="info-item-2">VMware Ubuntu Server 搭建 Samba 共享文件夹，Windows 与虚拟机双向互传文件</div></div><div class="info-2"><div class="info-item-1">前言日常使用 VMware 运行 Ubuntu Server 时，经常需要在 Windows 宿主机和虚拟机之间传输代码、配置文件、安装包。VMware 自带的 /mnt/hgfs 共享虽然简单，但存在大文件读写卡顿、Linux 文件权限丢失、稳定性差等问题。Samba 基于局域网文件共享协议，速度稳定、权限可控，适合长期开发和运维场景使用。本文完整记录从零配置 Samba 的全部步骤与排错方案。 两种文件共享方案对比   方案 优点 缺点 适用场景    VMware hgfs 共享 配置极简，一键开启 大文件 IO 速度慢、Linux 权限失效、偶尔挂载丢失 临时传输少量小文件   Samba 局域网共享 传输速度稳定、读写权限自定义、Windows 原生网络访问 需要手动配置服务与账号 长期开发、大量文件互传、项目代码同步   本文重点讲解推荐方案：Samba 局域网文件共享。 一、安装 Samba 服务1. 更新软件源并安装12sudo apt updatesudo apt install samba samba-common-bin -y  二、创建共享目录并配置权限1...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://avatars.githubusercontent.com/rayho-bool" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Rayho</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/rayho-bool"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/rayho-bool" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的博客</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Git-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%89%8B%E5%86%8C"><span class="toc-number">1.</span> <span class="toc-text">Git 常用命令手册</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#0-%E4%B8%80%E6%AC%A1%E6%80%A7%E9%85%8D%E7%BD%AE"><span class="toc-number">1.1.</span> <span class="toc-text">0. 一次性配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%88%9B%E5%BB%BA-%E8%8E%B7%E5%8F%96%E4%BB%93%E5%BA%93"><span class="toc-number">1.2.</span> <span class="toc-text">1. 创建 &#x2F; 获取仓库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%97%A5%E5%B8%B8%E4%B8%BB%E7%BA%BF%EF%BC%9A%E6%94%B9-%E2%86%92-%E5%AD%98-%E2%86%92-%E6%8F%90"><span class="toc-number">1.3.</span> <span class="toc-text">2. 日常主线：改 → 存 → 提</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%9F%A5%E7%9C%8B%E5%8E%86%E5%8F%B2"><span class="toc-number">1.4.</span> <span class="toc-text">3. 查看历史</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%88%86%E6%94%AF"><span class="toc-number">1.5.</span> <span class="toc-text">4. 分支</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E8%BF%9C%E7%A8%8B%E5%8D%8F%E4%BD%9C"><span class="toc-number">1.6.</span> <span class="toc-text">5. 远程协作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%92%A4%E9%94%80%E4%B8%8E%E5%9B%9E%E9%80%80%EF%BC%88%E9%87%8D%E7%82%B9%EF%BC%8C%E7%9C%8B%E6%B8%85%E6%A5%9A%E5%86%8D%E6%95%B2%EF%BC%89"><span class="toc-number">1.7.</span> <span class="toc-text">6. 撤销与回退（重点，看清楚再敲）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AA%E6%94%B9%E4%BA%86%E6%96%87%E4%BB%B6%EF%BC%8C%E8%BF%98%E6%B2%A1-add"><span class="toc-number">1.7.1.</span> <span class="toc-text">只改了文件，还没 add</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%B2%E7%BB%8F-add%EF%BC%8C%E8%BF%98%E6%B2%A1-commit"><span class="toc-number">1.7.2.</span> <span class="toc-text">已经 add，还没 commit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%B2%E7%BB%8F-commit%EF%BC%8C%E8%BF%98%E6%B2%A1-push"><span class="toc-number">1.7.3.</span> <span class="toc-text">已经 commit，还没 push</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%B2%E7%BB%8F-push-%E4%BA%86%EF%BC%88%E4%B8%8D%E8%A6%81-reset%EF%BC%8C%E7%94%A8-revert%EF%BC%89"><span class="toc-number">1.7.4.</span> <span class="toc-text">已经 push 了（不要 reset，用 revert）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AF%E6%93%8D%E4%BD%9C%E6%95%91%E5%9B%9E"><span class="toc-number">1.7.5.</span> <span class="toc-text">误操作救回</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%9A%82%E5%AD%98%E7%8E%B0%E5%9C%BA-stash"><span class="toc-number">1.8.</span> <span class="toc-text">7. 暂存现场 stash</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%8F%98%E5%9F%BA-rebase"><span class="toc-number">1.9.</span> <span class="toc-text">8. 变基 rebase</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%A0%87%E7%AD%BE"><span class="toc-number">1.10.</span> <span class="toc-text">9. 标签</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E5%B8%B8%E8%A7%81%E6%95%91%E7%81%AB%E5%9C%BA%E6%99%AF"><span class="toc-number">1.11.</span> <span class="toc-text">10. 常见救火场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E5%8D%B1%E9%99%A9%E7%AD%89%E7%BA%A7%E9%80%9F%E6%9F%A5"><span class="toc-number">1.12.</span> <span class="toc-text">11. 危险等级速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-%E4%B8%80%E6%9D%A1%E5%91%BD%E4%BB%A4%E7%9C%8B%E6%87%82%E5%BD%93%E5%89%8D%E7%8A%B6%E5%86%B5"><span class="toc-number">1.13.</span> <span class="toc-text">12. 一条命令看懂当前状况</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%BA%90"><span class="toc-number">1.14.</span> <span class="toc-text">附：学习资源</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/11/24/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%89%8B%E5%86%8C/" title="Git 常用命令手册">Git 常用命令手册</a><time datetime="2026-11-24T04:00:00.000Z" title="发表于 2026-11-24 12:00:00">2026-11-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/11/05/vim-manual-zh/" title="Vim 中文手册">Vim 中文手册</a><time datetime="2026-11-05T04:00:00.000Z" title="发表于 2026-11-05 12:00:00">2026-11-05</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/09/12/Keil-MDK%E8%B0%83%E8%AF%95STM32%E6%97%B6Peripherals%E8%8F%9C%E5%8D%95%E7%A9%BA%E7%99%BD%E9%97%AE%E9%A2%98/" title="彻底解决Keil MDK调试STM32时Peripherals菜单空白、仅显示Core Peripherals问题">彻底解决Keil MDK调试STM32时Peripherals菜单空白、仅显示Core Peripherals问题</a><time datetime="2026-09-12T04:00:00.000Z" title="发表于 2026-09-12 12:00:00">2026-09-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/22/select-poll-epoll%E5%BA%95%E5%B1%82%E6%89%A7%E8%A1%8C%E5%8E%9F%E7%90%86/" title="select/poll/epoll 底层执行原理详解">select/poll/epoll 底层执行原理详解</a><time datetime="2026-07-22T04:00:00.000Z" title="发表于 2026-07-22 12:00:00">2026-07-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/07/21/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B8%8A%E7%BD%91%E5%8A%A0%E9%80%9F-%E5%AE%BF%E4%B8%BB%E6%9C%BA%E4%BB%A3%E7%90%86/" title="虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子">虚拟机上网加速：通过宿主机代理让 Ubuntu Server 用上梯子</a><time datetime="2026-07-21T04:00:00.000Z" title="发表于 2026-07-21 12:00:00">2026-07-21</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2026 By Rayho</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.1.2</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.5</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>
